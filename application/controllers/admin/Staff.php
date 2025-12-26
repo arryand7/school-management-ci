@@ -659,9 +659,12 @@ class Staff extends Admin_Controller
                     $this->customfield_model->insertRecord($custom_value_array, $insert_id);
                 }
 
-                $upload_dir = './uploads/staff_documents/' . $staff_id . '/';
-                if (!is_dir($upload_dir) && !mkdir($upload_dir)) {
-                    die("Error creating folder $upload_dir");
+                $error_msg  = '';
+                $upload_dir = $this->ensure_staff_documents_dir($staff_id, $error_msg);
+                if ($upload_dir === false) {
+                    $this->session->set_flashdata('error_msg', $error_msg);
+                    redirect('admin/staff/edit/' . $staff_id);
+                    return;
                 }
                     
                 if (isset($_FILES["first_doc"]) && !empty($_FILES['first_doc']['name'])) {
@@ -1139,9 +1142,12 @@ class Staff extends Admin_Controller
                 }
             }
 
-            $upload_dir = './uploads/staff_documents/' . $id . '/';
-            if (!is_dir($upload_dir) && !mkdir($upload_dir)) {
-                die("Error creating folder $upload_dir");
+            $error_msg  = '';
+            $upload_dir = $this->ensure_staff_documents_dir($id, $error_msg);
+            if ($upload_dir === false) {
+                $this->session->set_flashdata('error_msg', $error_msg);
+                redirect('admin/staff/edit/' . $id);
+                return;
             }
             
             if (isset($_FILES["first_doc"]) && !empty($_FILES['first_doc']['name'])) {
@@ -1177,6 +1183,33 @@ class Staff extends Admin_Controller
             $this->session->set_flashdata('msg', '<div class="alert alert-success">' . $this->lang->line('update_message') . '</div>');
             redirect('admin/staff');
         }
+    }
+
+    private function ensure_staff_documents_dir($staff_id, &$error_msg = '')
+    {
+        $relative_dir = 'uploads/staff_documents/' . $staff_id . '/';
+        $absolute_dir = FCPATH . $relative_dir;
+        $parent_dir   = FCPATH . 'uploads/staff_documents';
+
+        if (!is_dir($parent_dir) && !@mkdir($parent_dir, 0755, true)) {
+            log_message('error', 'Unable to create staff documents parent directory: ' . $parent_dir);
+            $error_msg = 'Folder uploads/staff_documents tidak bisa dibuat. Periksa permission.';
+            return false;
+        }
+
+        if (!is_dir($absolute_dir) && !@mkdir($absolute_dir, 0755, true)) {
+            log_message('error', 'Unable to create staff documents directory: ' . $absolute_dir);
+            $error_msg = 'Folder dokumen staff tidak bisa dibuat. Periksa permission uploads/staff_documents.';
+            return false;
+        }
+
+        if (!is_writable($absolute_dir)) {
+            log_message('error', 'Staff documents directory is not writable: ' . $absolute_dir);
+            $error_msg = 'Folder dokumen staff tidak bisa ditulis. Periksa permission uploads/staff_documents.';
+            return false;
+        }
+
+        return './' . $relative_dir;
     }
 
     public function delete($id)

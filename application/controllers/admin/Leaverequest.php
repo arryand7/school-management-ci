@@ -179,9 +179,16 @@ class Leaverequest extends Admin_Controller
             if ($total_remain >= $leave_days) {
 
                 if (isset($_FILES["userfile"]) && !empty($_FILES['userfile']['name'])) {
-                    $uploaddir = './uploads/staff_documents/' . $staff_id . '/';
-                    if (!is_dir($uploaddir) && !mkdir($uploaddir)) {
-                        die("Error creating folder $uploaddir");
+                    $error_msg = '';
+                    $uploaddir = $this->ensure_staff_documents_dir($staff_id, $error_msg);
+                    if ($uploaddir === false) {
+                        $array = array(
+                            'status' => 'fail',
+                            'error' => array('userfile' => $error_msg),
+                            'message' => '',
+                        );
+                        echo json_encode($array);
+                        return;
                     }
                     $document = $this->media_storage->fileupload("userfile", $uploaddir);
                 } else {
@@ -263,9 +270,16 @@ class Leaverequest extends Admin_Controller
             if ($total_remain >= $leave_days) {
 
                 if (isset($_FILES["userfile"]) && !empty($_FILES['userfile']['name'])) {
-                    $uploaddir = './uploads/staff_documents/' . $staff_id . '/';
-                    if (!is_dir($uploaddir) && !mkdir($uploaddir)) {
-                        die("Error creating folder $uploaddir");
+                    $error_msg = '';
+                    $uploaddir = $this->ensure_staff_documents_dir($staff_id, $error_msg);
+                    if ($uploaddir === false) {
+                        $array = array(
+                            'status' => 'fail',
+                            'error' => array('userfile' => $error_msg),
+                            'message' => '',
+                        );
+                        echo json_encode($array);
+                        return;
                     }
                     $document = $this->media_storage->fileupload("userfile", $uploaddir);
                 } else {
@@ -350,6 +364,33 @@ class Leaverequest extends Admin_Controller
         }
         return true;
 
+    }
+
+    private function ensure_staff_documents_dir($staff_id, &$error_msg = '')
+    {
+        $relative_dir = 'uploads/staff_documents/' . $staff_id . '/';
+        $absolute_dir = FCPATH . $relative_dir;
+        $parent_dir   = FCPATH . 'uploads/staff_documents';
+
+        if (!is_dir($parent_dir) && !@mkdir($parent_dir, 0755, true)) {
+            log_message('error', 'Unable to create staff documents parent directory: ' . $parent_dir);
+            $error_msg = 'Folder uploads/staff_documents tidak bisa dibuat. Periksa permission.';
+            return false;
+        }
+
+        if (!is_dir($absolute_dir) && !@mkdir($absolute_dir, 0755, true)) {
+            log_message('error', 'Unable to create staff documents directory: ' . $absolute_dir);
+            $error_msg = 'Folder dokumen staff tidak bisa dibuat. Periksa permission uploads/staff_documents.';
+            return false;
+        }
+
+        if (!is_writable($absolute_dir)) {
+            log_message('error', 'Staff documents directory is not writable: ' . $absolute_dir);
+            $error_msg = 'Folder dokumen staff tidak bisa ditulis. Periksa permission uploads/staff_documents.';
+            return false;
+        }
+
+        return './' . $relative_dir;
     }
     
     public function downloadleaverequestdoc($staff_id, $id)
