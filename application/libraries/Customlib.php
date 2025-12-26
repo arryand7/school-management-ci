@@ -39,7 +39,6 @@ class Customlib
 
     public function getFolderPath()
     {  
-
         $student = $this->CI->session->userdata('student');
         $admin       = $this->CI->session->userdata('admin');        
         
@@ -50,7 +49,7 @@ class Customlib
         }   
         
         if ($folder_path == "") {
-            $folder_path = null;
+            $folder_path = FCPATH;
         }
         return $folder_path;
     }
@@ -923,8 +922,8 @@ class Customlib
 
     public function getAppVersion()
     {
-        //Build: 240620
-        $appVersion = "7.0.1";
+        //Build: 250103
+        $appVersion = "1.0";
         return $appVersion;
     }
 

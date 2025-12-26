@@ -76,3 +76,8 @@ $config['file_validate'] = array(
     'allowed_extension' => array('pptx', 'ppt', 'pdf', 'doc', 'xls', 'ppt', 'docx', 'xlsx', 'pptx', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'mp3', 'aac', 'mp4', 'mpg', '3gp', 'webm', 'mpeg', 'avi', 'wmv', 'mov', 'mid', 'midi', 'oga', 'opus', 'wav', 'weba', '3g2', 'PPTX', 'PPT', 'WEBA', 'MPEG', 'WAV', 'OPUS', 'MIDI', 'OGA', 'MID', 'PDF', 'DOC', 'XLS', 'DOCX', 'XLSX', 'JPG', 'JPEG', 'PNG', 'GIF', 'BMP', 'SVG', 'MP3', 'AAC', 'MP4', 'MPG', '3GP', 'WEBM', 'AVI', 'WMV', 'MOV', 'Pptx', 'Ppt', 'Pdf', 'Doc', 'Xls', 'Docx', 'Xlsx', 'Jpg', 'Jpeg', 'Png', 'Gif', 'Bmp', 'Svg', 'Mp3', 'Aac', 'Mp4', 'Mpg', '3Gp', 'Webm', 'Avi', 'Wmv', 'Mov', 'mkv', 'dta'), // image extensions
     'upload_size' => 100048576, // bytes
 );
+
+// GitHub updater settings (owner/repo or full GitHub URL).
+$config['github_update_repo'] = 'arryand7/school-management-ci';
+// Optional release asset name to download instead of the default zipball.
+$config['github_update_asset'] = '';

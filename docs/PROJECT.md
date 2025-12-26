@@ -7,7 +7,7 @@ Dokumen ini menjelaskan alur menjalankan proyek, instalasi ekstensi, struktur ko
 - Framework: CodeIgniter (struktur `system/` dan `application/`).
 - Frontend theme untuk publik ada di `application/views/themes/`.
 - Backend/admin assets ada di `backend/themes/` dan `backend/rtl/`.
-- Database schema tersedia di `backup/Installasi/database.sql`.
+- Database schema tersedia di `application/migrations/001_create_schema.sql`.
 - Seeder dummy data tersedia via CLI.
 
 ## Kebutuhan Sistem
@@ -29,8 +29,8 @@ Mengacu ke `backup/Installasi/requirements.php`:
    - Contoh path: `C:\xampp\htdocs\smart_school_src`
 2. Buat database MySQL:
    - Default nama DB di config: `ci_smart_scool`
-3. Import schema:
-   - File: `backup/Installasi/database.sql`
+3. Jalankan migrasi schema:
+   - `php index.php cli/migrate/latest`
 4. Update koneksi DB:
    - File: `application/config/database.php`
    - Sesuaikan `hostname`, `username`, `password`, `database`
@@ -48,7 +48,13 @@ Mengacu ke `backup/Installasi/requirements.php`:
    - `http://localhost/smart_school_src/`
 
 Catatan:
-- File installer ada di `backup/Installasi/` (referensi untuk proses setup).
+- Folder `backup/Installasi/` adalah legacy installer dan tidak diperlukan.
+
+## API Keys (Non-ENV)
+
+Semua API key disimpan di database dan dapat diatur dari UI:
+
+- Menu: `System Settings > Captcha` (bagian **API Keys**)
 
 ## Cara Menjalankan (Flow)
 
@@ -69,6 +75,15 @@ Seeder dummy data:
 ```bash
 php index.php cli/seed dummy
 php index.php cli/seed dummy fresh
+```
+
+### CLI (Migrasi)
+
+Migrasi schema:
+
+```bash
+php index.php cli/migrate/latest
+php index.php cli/migrate/fresh
 ```
 
 File terkait:
@@ -108,8 +123,8 @@ Catatan:
 
 ### Schema
 
-- Schema utama: `backup/Installasi/database.sql`
-- File ini berisi struktur tabel dan data konfigurasi dasar.
+- Schema utama: `application/migrations/001_create_schema.sql`
+- Migrasi utama: `application/migrations/001_init_schema.php`
 
 ### Konfigurasi Koneksi
 
@@ -165,7 +180,7 @@ File: `application/config/database.php`
 Konfigurasi session ada di `application/config/config.php`:
 
 - `sess_driver`: `files`
-- `sess_save_path`: `sys_get_temp_dir()`
+- `sess_save_path`: mengikuti konfigurasi di `application/config/config.php`
 
 ## Styling dan UI
 

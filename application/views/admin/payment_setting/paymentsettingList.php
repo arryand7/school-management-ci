@@ -452,6 +452,15 @@ $midtrans_result = check_in_array('midtrans', $paymentlist);
                                                         <span class=" text text-danger midtrans_serverkey_error"></span>
                                                     </div>
                                                 </div>
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-5 col-sm-12 col-xs-12" for="exampleInputEmail1">
+                                                        <?php echo $this->lang->line('publishable_key'); ?>
+                                                        <small class="req"> *</small></label>
+                                                    <div class="col-md-7 col-sm-7 col-xs-12">
+                                                        <input name="midtrans_clientkey" placeholder="" type="text" class="form-control col-md-7 col-xs-12" value="<?php echo isset($midtrans_result->api_publishable_key) ? $midtrans_result->api_publishable_key : ""; ?>" />
+                                                        <span class=" text text-danger midtrans_clientkey_error"></span>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="col-md-5 text text-center disblock">
                                                 <a href="https://midtrans.com/" target="_blank">

@@ -4,7 +4,7 @@ $query_builder = true;
 
 $db['default'] = array (
   'dsn' => '',
-  'hostname' => 'localhost',
+  'hostname' => '127.0.0.1',
   'username' => 'root',
   'password' => '',
   'database' => 'ci_smart_scool',
@@ -16,6 +16,8 @@ $db['default'] = array (
   'cachedir' => '',
   'char_set' => 'utf8',
   'dbcollat' => 'utf8_general_ci',
+  'port' => 8186,
+  'socket' => '',
   'swap_pre' => '',
   'encrypt' => false,
   'compress' => false,
@@ -30,7 +32,10 @@ $db['default'] = array (
 $active_group = 'default';
 
 $mydb   = $db['default'];
-$mysqli = new mysqli($mydb['hostname'], $mydb['username'], $mydb['password'], $mydb['database']);
+$port = isset($mydb['port']) ? (int) $mydb['port'] : ini_get('mysqli.default_port');
+$socket = isset($mydb['socket']) && $mydb['socket'] !== '' ? $mydb['socket'] : ini_get('mysqli.default_socket');
+
+$mysqli = new mysqli($mydb['hostname'], $mydb['username'], $mydb['password'], $mydb['database'], $port ?: null, $socket ?: null);
 
 if ($mysqli->connect_errno) {
     printf("connection failed: %s\n", $mysqli->connect_error());

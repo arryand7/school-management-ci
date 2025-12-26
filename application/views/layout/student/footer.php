@@ -33,6 +33,11 @@
    });
 </script>
 
+<script>
+    var AdminLTEOptions = {
+        sidebarSlimScroll: false
+    };
+</script>
 <script src="<?php echo base_url(); ?>backend/dist/js/app.min.js"></script>
 <!--nprogress-->
 <script src="<?php echo base_url(); ?>backend/dist/js/nprogress.js"></script>

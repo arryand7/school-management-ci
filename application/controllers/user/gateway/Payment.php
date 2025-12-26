@@ -207,7 +207,7 @@ class Payment extends Studentgateway_Controller
                         redirect(base_url("user/gateway/paytm"));
                     }
                 } else if ($pay_method->payment_type == "midtrans") {
-                    if ($pay_method->api_secret_key == "") {
+                    if ($pay_method->api_secret_key == "" || $pay_method->api_publishable_key == "") {
                         $this->session->set_flashdata('error', '<div class="alert alert-danger">' . $this->lang->line('midtrans_settings_not_available') . '</div>');
                         redirect($_SERVER['HTTP_REFERER']);
                     } else {
@@ -599,7 +599,7 @@ class Payment extends Studentgateway_Controller
                             redirect(base_url("user/gateway/paytm"));
                         }
                     } else if ($pay_method->payment_type == "midtrans") {
-                        if ($pay_method->api_secret_key == "") {
+                        if ($pay_method->api_secret_key == "" || $pay_method->api_publishable_key == "") {
                             $this->session->set_flashdata('error', '<div class="alert alert-danger">' . $this->lang->line('midtrans_settings_not_available') . '</div>');
                             redirect($_SERVER['HTTP_REFERER']);
                         } else {
@@ -884,7 +884,7 @@ class Payment extends Studentgateway_Controller
                     redirect(base_url("students/paytm"));
                 }
             } else if ($pay_method->payment_type == "midtrans") {
-                if ($pay_method->api_secret_key == "") {
+                if ($pay_method->api_secret_key == "" || $pay_method->api_publishable_key == "") {
                     $this->session->set_flashdata('error', '<div class="alert alert-danger">' . $this->lang->line('midtrans_settings_not_available') . '</div>');
                     redirect($_SERVER['HTTP_REFERER']);
                 } else {

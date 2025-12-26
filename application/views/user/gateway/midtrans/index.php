@@ -37,9 +37,11 @@
                 color: #bf4f4d;
             }
         </style> 
+        <?php if (!empty($params['api_publishable_key'])) { ?>
         <script type="text/javascript"
                 src="https://app.midtrans.com/snap/snap.js"
-        data-client-key="SB-Mid-client-2uDtZD3V5ZA_pNYW"></script> 
+        data-client-key="<?php echo html_escape($params['api_publishable_key']); ?>"></script> 
+        <?php } ?>
        <script src="<?php echo base_url(); ?>backend/custom/jquery.min.js"></script>
     </head>
     <body style="background: #ededed;">
@@ -50,6 +52,11 @@
             </form>
             <div class="row">
                 <div class="paddtop20">
+                    <?php if (empty($params['api_publishable_key'])) { ?>
+                        <div class="alert alert-danger">
+                            <?php echo $this->lang->line('midtrans_settings_not_available'); ?>
+                        </div>
+                    <?php } ?>
                     <div class="col-md-8 col-md-offset-2 text-center">
                         <img src="<?php echo base_url('uploads/school_content/logo/' . $setting[0]['image']); ?>">
                     </div>
@@ -103,7 +110,7 @@
                                         <hr>
                                         <tr class="bordertoplightgray">
                                             <td  bgcolor="#fff"><button type="button" onclick="window.history.go(-1); return false;" name="search"  value="" class="btn btn-info"><i class="fa fa fa-chevron-left"></i> <?php echo $this->lang->line('back'); ?> </button>  </td>
-                                            <td  bgcolor="#fff" class="text-right"> <button type="button"  name="search" id="pay-button"  value="" class="btn btn-info"><?php echo $this->lang->line('pay_with_midtrans'); ?>  <i class="fa fa fa-chevron-right"></i></button>  </td>
+                                            <td  bgcolor="#fff" class="text-right"> <button type="button"  name="search" id="pay-button"  value="" class="btn btn-info" <?php echo empty($params['api_publishable_key']) ? 'disabled' : ''; ?>><?php echo $this->lang->line('pay_with_midtrans'); ?>  <i class="fa fa fa-chevron-right"></i></button>  </td>
                                         </tr>
                                     </table>
                                 </form>

@@ -552,30 +552,45 @@ class Auth
             return false;
         }
         $version_dt  = $this->CI->session->userdata('version');
-        $dw_filename = $version_dt['filename'];
+        $dw_filename = isset($version_dt['filename']) ? $version_dt['filename'] : 'update.zip';
         $fd_name     = $this->filename($dw_filename);
-        $url         = $this->CI->enc_lib->dycrypt(DEBUG_SYSTEM_AUTO_UPDATE);
         $file        = './temp/' . $dw_filename;
-        $sslk        = $this->CI->config->item('SSLK');
-        $app_version = $this->CI->customlib->getAppVersion();
-        $post_data   = [
-            'sslk'        => $sslk,
-            'site_url'    => site_url(),
-            'app_version' => $app_version,
-        ];
-        $curl = curl_init();
-        curl_setopt_array($curl, [
-            CURLOPT_URL            => $url,
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_FOLLOWLOCATION => 1,
-            CURLOPT_CONNECTTIMEOUT => 50,
-            CURLOPT_POSTFIELDS     => $post_data,
-            CURLOPT_USERAGENT      => 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)',
-        ]);
+        $this->ensureTempDirectory();
 
-        $response = curl_exec($curl);
-        $info     = curl_getinfo($curl);
-        curl_close($curl);
+        $response = null;
+        $info     = array('http_code' => 0, 'content_type' => '');
+
+        if (!empty($version_dt['download_url'])) {
+            $download = $this->downloadUpdatePackage($version_dt['download_url']);
+            if (!$download) {
+                $this->set_error('Unable to download update package.');
+                return false;
+            }
+            $response = $download['body'];
+            $info     = $download['info'];
+        } else {
+            $url         = $this->CI->enc_lib->dycrypt(DEBUG_SYSTEM_AUTO_UPDATE);
+            $sslk        = $this->CI->config->item('SSLK');
+            $app_version = $this->CI->customlib->getAppVersion();
+            $post_data   = [
+                'sslk'        => $sslk,
+                'site_url'    => site_url(),
+                'app_version' => $app_version,
+            ];
+            $curl = curl_init();
+            curl_setopt_array($curl, [
+                CURLOPT_URL            => $url,
+                CURLOPT_RETURNTRANSFER => 1,
+                CURLOPT_FOLLOWLOCATION => 1,
+                CURLOPT_CONNECTTIMEOUT => 50,
+                CURLOPT_POSTFIELDS     => $post_data,
+                CURLOPT_USERAGENT      => 'Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)',
+            ]);
+
+            $response = curl_exec($curl);
+            $info     = curl_getinfo($curl);
+            curl_close($curl);
+        }
         $this->CI->session->unset_userdata('version');
         if ($info['http_code'] == 0 && $info['header_size'] == 0) {
             $this->set_error('Unable to connect updater, please try after sometime!');
@@ -583,24 +598,27 @@ class Auth
         }
 
         if ($info['http_code'] == 200) {
-            if ($info['content_type'] == "application/zip") {
-//=========
+            if ($this->isZipResponse($info, $response)) {
                 file_put_contents($file, $response);
                 if (filesize($file) > 0) {
                     $zip = new ZipArchive;
-                    $res = $zip->open('./temp/' . $dw_filename);
+                    $res = $zip->open($file);
                     if ($res === true) {
+                        $root_folder = $this->getZipRootFolder($zip);
                         $zip->extractTo('./temp/');
                         $zip->close();
+                        if (!empty($root_folder)) {
+                            $fd_name = $root_folder;
+                        }
                         if (!$this->import_dump($fd_name)) {
-                            unlink('./temp/' . $fd_name . '/db_import.sql');
-                            unlink('./temp/' . $dw_filename);
+                            @unlink('./temp/' . $fd_name . '/db_import.sql');
+                            @unlink($file);
                             $this->deleteDir('./temp/' . $fd_name);
                             return false;
                         }
-                        unlink('./temp/' . $fd_name . '/db_import.sql');
+                        @unlink('./temp/' . $fd_name . '/db_import.sql');
                         $this->recurse_copy('./temp/' . $fd_name, '.');
-                        unlink('./temp/' . $dw_filename);
+                        @unlink($file);
                         $this->deleteDir('./temp/' . $fd_name);
                         $this->set_message('Update successful!');
                     } else {
@@ -609,13 +627,10 @@ class Auth
                     }
 
                 }
-                //==================
             } else if (is_string($response) && is_array(json_decode($response, true))) {
                 $result = json_decode($response);
                 $this->set_message($result->response);
                 return false;
-            } else {
-
             }
 
         } else {
@@ -745,6 +760,10 @@ class Auth
     public function checkupdate()
     {
         $this->CI->session->unset_userdata('version');
+        $repo = $this->getGithubRepo();
+        if (!empty($repo)) {
+            return $this->checkupdate_github($repo);
+        }
         $url         = $this->CI->enc_lib->dycrypt(DEBUG_SYSTEM_CHECK_UPDATE);
         $sslk        = $this->CI->config->item('SSLK');
         $app_version = $this->CI->customlib->getAppVersion();
@@ -787,6 +806,296 @@ class Auth
                 return true;
             }
         }
+    }
+
+    private function checkupdate_github($repo)
+    {
+        $latest = $this->getGithubLatestRelease($repo);
+        if (!$latest) {
+            return false;
+        }
+
+        $current_version = $this->normalizeVersion($this->CI->customlib->getAppVersion());
+        $latest_version  = $this->normalizeVersion($latest['version']);
+
+        if ($latest_version === '') {
+            $this->set_error('GitHub release tag is missing or invalid.');
+            return false;
+        }
+
+        if ($current_version !== '' && version_compare($latest_version, $current_version, '>')) {
+            $this->CI->session->set_userdata('version', array(
+                'version'      => $latest_version,
+                'filename'     => $latest['filename'],
+                'download_url' => $latest['download_url'],
+                'source'       => 'github',
+            ));
+            $this->set_message('Update available from GitHub.');
+        } else {
+            $this->set_message('You are already using the latest version.');
+        }
+
+        return true;
+    }
+
+    public function get_update_repo_url()
+    {
+        $repo = $this->getGithubRepo();
+        if ($repo === '') {
+            return '';
+        }
+        return 'https://github.com/' . $repo;
+    }
+
+    private function getGithubRepo()
+    {
+        $repo = trim((string) $this->CI->config->item('github_update_repo'));
+        if ($repo === '') {
+            $repo = trim((string) getenv('SMART_SCHOOL_GITHUB_REPO'));
+        }
+        if ($repo === '') {
+            $repo = $this->getGitOriginRepo();
+        }
+        return $this->normalizeGithubRepo($repo);
+    }
+
+    private function getGitOriginRepo()
+    {
+        $git_config = FCPATH . '.git/config';
+        if (!is_file($git_config)) {
+            return '';
+        }
+        $contents = @file_get_contents($git_config);
+        if ($contents === false) {
+            return '';
+        }
+        if (preg_match('/\\[remote \"origin\"\\][\\s\\S]*?url\\s*=\\s*(.+)/', $contents, $matches)) {
+            return trim($matches[1]);
+        }
+        return '';
+    }
+
+    private function normalizeGithubRepo($repo)
+    {
+        $repo = trim($repo);
+        if ($repo === '') {
+            return '';
+        }
+        $repo = preg_replace('/\\.git$/', '', $repo);
+        if (preg_match('#github\\.com[:/](.+/.+)$#i', $repo, $matches)) {
+            $repo = $matches[1];
+        }
+        $repo = trim($repo, '/');
+        if (substr_count($repo, '/') !== 1) {
+            return '';
+        }
+        return $repo;
+    }
+
+    private function getGithubLatestRelease($repo)
+    {
+        $release = $this->fetchGithubJson('https://api.github.com/repos/' . $repo . '/releases/latest');
+        if ($release['http_code'] == 404) {
+            return $this->getGithubLatestTag($repo);
+        }
+        if ($release['http_code'] != 200) {
+            $this->set_error('GitHub update check failed.');
+            return false;
+        }
+        if (!is_array($release['body'])) {
+            $this->set_error('GitHub update response is invalid.');
+            return false;
+        }
+
+        $payload = $release['body'];
+        $version = '';
+        if (!empty($payload['tag_name'])) {
+            $version = $payload['tag_name'];
+        } elseif (!empty($payload['name'])) {
+            $version = $payload['name'];
+        }
+
+        $download_url = '';
+        $filename     = '';
+        $asset_name   = trim((string) $this->CI->config->item('github_update_asset'));
+        if ($asset_name !== '' && !empty($payload['assets']) && is_array($payload['assets'])) {
+            foreach ($payload['assets'] as $asset) {
+                if (!empty($asset['name']) && $asset['name'] === $asset_name && !empty($asset['browser_download_url'])) {
+                    $download_url = $asset['browser_download_url'];
+                    $filename     = $asset['name'];
+                    break;
+                }
+            }
+        }
+
+        if ($download_url === '' && !empty($payload['zipball_url'])) {
+            $download_url = $payload['zipball_url'];
+            $filename     = $this->filenameFromUrl($download_url, $repo, $version);
+        }
+
+        if ($download_url === '') {
+            $this->set_error('GitHub release does not include a downloadable archive.');
+            return false;
+        }
+
+        if ($filename === '') {
+            $filename = $this->filenameFromUrl($download_url, $repo, $version);
+        }
+
+        return array(
+            'version'      => $version,
+            'download_url' => $download_url,
+            'filename'     => $filename,
+        );
+    }
+
+    private function getGithubLatestTag($repo)
+    {
+        $tags = $this->fetchGithubJson('https://api.github.com/repos/' . $repo . '/tags');
+        if ($tags['http_code'] != 200 || empty($tags['body'][0])) {
+            $this->set_error('GitHub tags not available.');
+            return false;
+        }
+
+        $tag          = $tags['body'][0];
+        $version      = isset($tag['name']) ? $tag['name'] : '';
+        $download_url = isset($tag['zipball_url']) ? $tag['zipball_url'] : '';
+        $filename     = $this->filenameFromUrl($download_url, $repo, $version);
+
+        if ($download_url === '') {
+            $this->set_error('GitHub tag archive URL missing.');
+            return false;
+        }
+
+        return array(
+            'version'      => $version,
+            'download_url' => $download_url,
+            'filename'     => $filename,
+        );
+    }
+
+    private function fetchGithubJson($url)
+    {
+        $ch = curl_init();
+        curl_setopt_array($ch, array(
+            CURLOPT_URL            => $url,
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_FOLLOWLOCATION => 1,
+            CURLOPT_CONNECTTIMEOUT => 20,
+            CURLOPT_TIMEOUT        => 60,
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSL_VERIFYPEER => 0,
+            CURLOPT_USERAGENT      => 'SmartSchoolUpdater',
+            CURLOPT_HTTPHEADER     => array('Accept: application/vnd.github+json'),
+        ));
+        $output = curl_exec($ch);
+        $info   = curl_getinfo($ch);
+        $error  = curl_error($ch);
+        curl_close($ch);
+
+        $body = null;
+        if (is_string($output) && $output !== '') {
+            $body = json_decode($output, true);
+        }
+        if ($info['http_code'] == 0 && $error) {
+            $this->set_error($error);
+        }
+
+        return array(
+            'http_code' => isset($info['http_code']) ? $info['http_code'] : 0,
+            'body'      => $body,
+            'raw'       => $output,
+        );
+    }
+
+    private function filenameFromUrl($url, $repo, $version)
+    {
+        $path = parse_url($url, PHP_URL_PATH);
+        $name = $path ? basename($path) : '';
+        if ($name === '' || strpos($name, '.') === false) {
+            $safe_repo    = str_replace('/', '-', $repo);
+            $safe_version = $this->normalizeVersion($version);
+            $name         = $safe_repo . ($safe_version !== '' ? '-' . $safe_version : '') . '.zip';
+        }
+        if (substr($name, -4) !== '.zip') {
+            $name .= '.zip';
+        }
+        return $name;
+    }
+
+    private function normalizeVersion($version)
+    {
+        $version = trim((string) $version);
+        $version = ltrim($version, 'vV');
+        return $version;
+    }
+
+    private function ensureTempDirectory()
+    {
+        if (!is_dir('./temp')) {
+            @mkdir('./temp', 0755, true);
+        }
+    }
+
+    private function downloadUpdatePackage($url)
+    {
+        $ch = curl_init();
+        curl_setopt_array($ch, array(
+            CURLOPT_URL            => $url,
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_FOLLOWLOCATION => 1,
+            CURLOPT_CONNECTTIMEOUT => 50,
+            CURLOPT_TIMEOUT        => 120,
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSL_VERIFYPEER => 0,
+            CURLOPT_USERAGENT      => 'SmartSchoolUpdater',
+            CURLOPT_HTTPHEADER     => array('Accept: application/octet-stream'),
+        ));
+        $output = curl_exec($ch);
+        $info   = curl_getinfo($ch);
+        curl_close($ch);
+
+        if (!is_string($output) || $output === '') {
+            return false;
+        }
+
+        return array(
+            'body' => $output,
+            'info' => $info,
+        );
+    }
+
+    private function isZipResponse($info, $response)
+    {
+        if (!is_string($response) || $response === '') {
+            return false;
+        }
+        $content_type = isset($info['content_type']) ? $info['content_type'] : '';
+        if (strpos($content_type, 'application/zip') !== false || strpos($content_type, 'application/octet-stream') !== false) {
+            return true;
+        }
+        if (substr($response, 0, 2) === 'PK') {
+            return true;
+        }
+        return false;
+    }
+
+    private function getZipRootFolder(ZipArchive $zip)
+    {
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if ($name === false) {
+                continue;
+            }
+            if (strpos($name, '/') === false) {
+                continue;
+            }
+            $parts = explode('/', $name, 2);
+            if (!empty($parts[0])) {
+                return $parts[0];
+            }
+        }
+        return '';
     }
 
     public function filename($filename)

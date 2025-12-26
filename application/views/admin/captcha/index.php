@@ -56,6 +56,45 @@ if (!empty($inserted_fields)) {
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">API Keys</h3>
+                    </div>
+                    <form action="<?php echo site_url('admin/captcha/update_keys'); ?>" method="post">
+                        <input type="hidden" name="id" value="<?php echo html_escape($setting->id); ?>"/>
+                        <div class="box-body">
+                            <div class="form-group">
+                                <label>Google Maps API Key</label>
+                                <input type="text" name="google_maps_api_key" class="form-control" value="<?php echo html_escape(set_value('google_maps_api_key', $setting->google_maps_api_key)); ?>"/>
+                                <small class="text-muted">Dipakai untuk fitur pickup point map.</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Firebase Service Account JSON</label>
+                                <textarea name="firebase_service_account_json" class="form-control" rows="6"><?php echo html_escape(set_value('firebase_service_account_json', $setting->firebase_service_account_json)); ?></textarea>
+                                <small class="text-muted">Tempelkan JSON service account untuk FCM.</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Yandex Translate API Key</label>
+                                <input type="text" name="yandex_translate_api_key" class="form-control" value="<?php echo html_escape(set_value('yandex_translate_api_key', $setting->yandex_translate_api_key)); ?>"/>
+                            </div>
+                            <div class="form-group">
+                                <label>Paymongo Public Key</label>
+                                <input type="text" name="paymongo_public_key" class="form-control" value="<?php echo html_escape(set_value('paymongo_public_key', $setting->paymongo_public_key)); ?>"/>
+                            </div>
+                            <div class="form-group">
+                                <label>Paymongo Secret Key</label>
+                                <input type="text" name="paymongo_secret_key" class="form-control" value="<?php echo html_escape(set_value('paymongo_secret_key', $setting->paymongo_secret_key)); ?>"/>
+                            </div>
+                        </div>
+                        <div class="box-footer">
+                            <button type="submit" class="btn btn-primary"><?php echo $this->lang->line('save'); ?></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </section>
 </div>
 

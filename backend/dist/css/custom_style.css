@@ -7,3 +7,15 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.main-sidebar .sidebar {
+    height: calc(100vh - 50px);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+@media (max-width: 767px) {
+    .main-sidebar .sidebar {
+        height: calc(100vh - 100px);
+    }
+}

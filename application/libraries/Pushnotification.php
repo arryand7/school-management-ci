@@ -19,16 +19,25 @@ class Pushnotification
     private $key_file_path = APPPATH . "third_party/firebase_notification_key.json";
     private $scope = "https://www.googleapis.com/auth/firebase.messaging";
     private $token;
+    private $credentials;
 
     public function __construct()
     {
         $this->CI = &get_instance();
+        $this->CI->load->model('setting_model');
     }
 
     public function send($tokens, $msg, $action = "")
     {		 
-        $creadentials = new ServiceAccountCredentials('https://www.googleapis.com/auth/firebase.messaging', json_decode(file_get_contents($this->key_file_path), true));
-        $this->token = $creadentials->fetchAuthToken(HttpHandlerFactory::build());
+        $credentials = $this->resolveCredentials();
+        if (empty($credentials) || empty($credentials['project_id'])) {
+            log_message('error', 'Firebase credentials missing or invalid.');
+            return false;
+        }
+
+        $this->fcmUrl = 'https://fcm.googleapis.com/v1/projects/' . $credentials['project_id'] . '/messages:send';
+        $creadentials = new ServiceAccountCredentials($this->scope, $credentials);
+        $this->token  = $creadentials->fetchAuthToken(HttpHandlerFactory::build());
         $data = [
             'token' => $tokens,
             'title' => $msg['title'],
@@ -38,6 +47,36 @@ class Pushnotification
         ];
 
         return $this->to($data);
+    }
+
+    private function resolveCredentials()
+    {
+        if ($this->credentials !== null) {
+            return $this->credentials;
+        }
+
+        $setting = $this->CI->setting_model->getSetting();
+        if (!empty($setting->firebase_service_account_json)) {
+            $decoded = json_decode($setting->firebase_service_account_json, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $this->credentials = $decoded;
+                return $this->credentials;
+            }
+        }
+
+        if (is_file($this->key_file_path)) {
+            $contents = file_get_contents($this->key_file_path);
+            if ($contents !== false) {
+                $decoded = json_decode($contents, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $this->credentials = $decoded;
+                    return $this->credentials;
+                }
+            }
+        }
+
+        $this->credentials = null;
+        return $this->credentials;
     }
 
     public function to($data)

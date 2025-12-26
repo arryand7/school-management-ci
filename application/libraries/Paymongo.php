@@ -14,12 +14,18 @@ class Paymongo {
 
     public function __construct() {
         $this->_CI = &get_instance();
+        $this->_CI->load->model('setting_model');
     }
 
     public function payment() {
         $gateway = Omnipay::create('Paymongo_Card');
-        
-        $gateway->setKeys('pk_test_xQBzFMDbKeiTD9GRovJLgkAK', 'sk_test_ttfPyF2BE396vQLVVMfAYGaK');
+
+        $setting = $this->_CI->setting_model->getSetting();
+        if (empty($setting->paymongo_public_key) || empty($setting->paymongo_secret_key)) {
+            return false;
+        }
+
+        $gateway->setKeys($setting->paymongo_public_key, $setting->paymongo_secret_key);
         $token = $gateway->authorize([
             'number' => '4123 4501 3100 0508',
             'expiryMonth' => '1',

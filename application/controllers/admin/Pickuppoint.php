@@ -23,6 +23,7 @@ class Pickuppoint extends Admin_Controller
         $this->session->set_userdata('top_menu', 'Transport');
         $this->session->set_userdata('sub_menu', 'pickuppoint/index');
         $data = array();
+        $data['sch_setting'] = $this->sch_setting_detail;
         $this->load->view('layout/header');
         $this->load->view('admin/pickuppoint/index', $data);
         $this->load->view('layout/footer');

@@ -16,11 +16,18 @@ class Migration_Init_schema extends CI_Migration
         parent::__construct();
 
         $this->load->dbforge();
-        $this->schemaFile = FCPATH . 'backup/Installasi/database.sql';
+        $primarySchema = APPPATH . 'migrations/001_create_schema.sql';
+        $legacySchema  = FCPATH . 'backup/Installasi/database.sql';
+
+        $this->schemaFile = is_file($primarySchema) ? $primarySchema : $legacySchema;
     }
 
     public function up()
     {
+        if ($this->db->table_exists('sch_settings')) {
+            return;
+        }
+
         if (!is_file($this->schemaFile)) {
             throw new RuntimeException('Schema file not found at ' . $this->schemaFile);
         }

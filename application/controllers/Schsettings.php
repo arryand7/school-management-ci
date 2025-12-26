@@ -176,7 +176,7 @@ class Schsettings extends Admin_Controller
     public function handle_upload()
     {   
         if (isset($_FILES["file"]) && !empty($_FILES['file']['name'])) {
-            $allowedExts = array('jpg', 'jpeg', 'png');
+            $allowedExts = array('jpg', 'jpeg', 'png', 'gif', 'ico', 'webp');
             $temp        = explode(".", $_FILES["file"]["name"]);
             $extension   = end($temp);            
             
@@ -187,7 +187,10 @@ class Schsettings extends Admin_Controller
             }
             if ($_FILES["file"]["type"] != 'image/gif' &&
                 $_FILES["file"]["type"] != 'image/jpeg' &&
-                $_FILES["file"]["type"] != 'image/png') {
+                $_FILES["file"]["type"] != 'image/png' &&
+                $_FILES["file"]["type"] != 'image/webp' &&
+                $_FILES["file"]["type"] != 'image/x-icon' &&
+                $_FILES["file"]["type"] != 'image/vnd.microsoft.icon') {
                 
                 $this->form_validation->set_message('handle_upload', $this->lang->line('file_type_not_allowed'));
                 return false;
@@ -311,7 +314,7 @@ class Schsettings extends Admin_Controller
 
             if (isset($_FILES["file"]) && $_FILES['file']['name'] != '' && (!empty($_FILES['file']['name']))) {
 
-                $img_name = $this->media_storage->fileupload("file", "./uploads/school_content/logo/app_logo//");
+                $img_name = $this->media_storage->fileupload("file", "./uploads/school_content/logo/app_logo/");
             } else {
                 $img_name = $setting->app_logo;
             }

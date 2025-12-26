@@ -61,7 +61,7 @@ echo $this->lang->line($submenu_value->lang_key);
 }
             ?>
 
-                                                        </ol>
+                                                        </ul>
                                                         <?php
 } else {
             ?>
@@ -134,7 +134,7 @@ echo $this->lang->line($submenu_value->lang_key);
 }
             ?>
 
-                                                        </ol>
+                                                        </ul>
                                                         <?php
 } else {
             ?>

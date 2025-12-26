@@ -263,6 +263,7 @@ if ($this->rbac->hasPrivilege('expense', 'can_add')) {
 </div>
 
 <script type="text/javascript">
+     var base_url = (typeof base_url !== 'undefined') ? base_url : (typeof baseurl !== 'undefined' ? baseurl : '<?php echo base_url(); ?>');
      $(document).ready(function(){
 get_menus();
 $("#form_add_menu").on('submit', (function (e) {

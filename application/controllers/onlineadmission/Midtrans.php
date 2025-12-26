@@ -36,6 +36,7 @@ class Midtrans extends OnlineAdmission_Controller
         $data['return_url'] = base_url() . "onlineadmission/midtrans/complete";
         $snapToken = $this->midtrans_lib->getSnapToken($transaction, $this->pay_method->api_secret_key);
         $data['snap_Token'] = $snapToken;
+        $data['client_key'] = $this->pay_method->api_publishable_key;
         $this->load->view('onlineadmission/midtrans/index', $data);
     }
 

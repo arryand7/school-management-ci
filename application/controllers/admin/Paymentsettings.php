@@ -262,12 +262,14 @@ class Paymentsettings extends Admin_Controller
     {
         $this->form_validation->set_error_delimiters('', '');
         $this->form_validation->set_rules('midtrans_serverkey', $this->lang->line('key'), 'trim|required|xss_clean');
+        $this->form_validation->set_rules('midtrans_clientkey', $this->lang->line('publishable_key'), 'trim|required|xss_clean');
 
         if ($this->form_validation->run()) {
 
             $data = array(
-                'api_secret_key' => $this->input->post('midtrans_serverkey'),
-                'payment_type'   => 'midtrans',
+                'api_secret_key'      => $this->input->post('midtrans_serverkey'),
+                'api_publishable_key' => $this->input->post('midtrans_clientkey'),
+                'payment_type'        => 'midtrans',
             );
 
             $this->paymentsetting_model->add($data);
@@ -276,6 +278,7 @@ class Paymentsettings extends Admin_Controller
 
             $data = array(
                 'midtrans_serverkey' => form_error('midtrans_serverkey'),
+                'midtrans_clientkey' => form_error('midtrans_clientkey'),
             );
             echo json_encode(array('st' => 1, 'msg' => $data));
         }

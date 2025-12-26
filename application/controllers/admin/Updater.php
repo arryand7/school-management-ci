@@ -54,6 +54,7 @@ class Updater extends Admin_Controller
             redirect('admin/updater/index/' . random_string('alpha', 16), 'refresh');
         }
 
+        $data['update_repo_url'] = $this->auth->get_update_repo_url();
         $this->load->view('layout/header', $data);
         $this->load->view('admin/updater/index', $data);
         $this->load->view('layout/footer', $data);

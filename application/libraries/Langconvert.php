@@ -6,9 +6,11 @@ if (!defined('BASEPATH'))
 class Langconvert {
 
     private $_CI;
+    private $apiKey;
 
     function __construct() {
         $this->_CI = & get_instance();
+        $this->_CI->load->model('setting_model');
         $this->session_name = $this->_CI->setting_model->getCurrentSessionName();
     }
 
@@ -53,9 +55,13 @@ class Langconvert {
 
     public function yandexTranslate($fromLang, $toLang, $text) {
 
+        $apiKey = $this->getApiKey();
+        if ($apiKey === '') {
+            return $text;
+        }
+
         $transferData = array(
-            'key' => 'trnsl.1.1.20170328T154056Z.8b07168622735883.6cd68c2f1d1cf80bb3c55e2505e086af6b7674f6',
-            // 'key'=>'trnsl.1.1.20191001T080822Z.114211cde45db473.64d076985b8a701da6f0ae6b6806bdc92f060dd1',
+            'key' => $apiKey,
             'lang' => $fromLang . '-' . $toLang,
             'text' => $text,
         );
@@ -67,6 +73,17 @@ class Langconvert {
         $translate = str_replace('\n', $this->eolSymbol, $rawTranslate);
 
         return $translate;
+    }
+
+    private function getApiKey()
+    {
+        if ($this->apiKey !== null) {
+            return $this->apiKey;
+        }
+
+        $setting = $this->_CI->setting_model->getSetting();
+        $this->apiKey = isset($setting->yandex_translate_api_key) ? $setting->yandex_translate_api_key : '';
+        return $this->apiKey;
     }
 
 }

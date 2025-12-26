@@ -11,7 +11,9 @@
 $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
 ?>
 
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDSFi9EkS9zhnuYqfumbkuUsVv4Z-n60mg&callback=initMap"></script>
+<?php if (!empty($sch_setting->google_maps_api_key)) { ?>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=<?php echo urlencode($sch_setting->google_maps_api_key); ?>&callback=initMap"></script>
+<?php } ?>
 
 <div class="content-wrapper">
     <section class="content-header">
@@ -20,6 +22,11 @@ $currency_symbol = $this->customlib->getSchoolCurrencyFormat();
         </h1>
     </section>
     <section class="content">
+        <?php if (empty($sch_setting->google_maps_api_key)) { ?>
+            <div class="alert alert-warning">
+                Google Maps API key belum diatur. Silakan isi di System Settings > Captcha (API Keys).
+            </div>
+        <?php } ?>
         <div class="row">
             <div class="col-md-12">
                 <div class="box box-primary" id="route">
