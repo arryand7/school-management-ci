@@ -247,6 +247,24 @@
 <script type="text/javascript">
     var base_url = '<?php echo base_url(); ?>';
     var logo_type = "logo";
+    function showUploadError(xhr, fallback) {
+        var message = fallback || 'Upload gagal. Silakan coba lagi.';
+        if (xhr && xhr.responseJSON && xhr.responseJSON.error && xhr.responseJSON.error.file) {
+            message = xhr.responseJSON.error.file;
+        } else if (xhr && xhr.responseText) {
+            try {
+                var parsed = JSON.parse(xhr.responseText);
+                if (parsed && parsed.error && parsed.error.file) {
+                    message = parsed.error.file;
+                }
+            } catch (e) {
+                if (xhr.status) {
+                    message = xhr.status + ' ' + xhr.statusText;
+                }
+            }
+        }
+        errorMsg(message);
+    }
     $('.upload_logo').on('click', function (e) {
         e.preventDefault();
         var $this = $(this);
@@ -393,17 +411,18 @@
                 $('#modal-uploadfile').addClass('modal_loading');
             },
             success: function (response) {
-                if (response.success) {
+                if (response && response.success) {
                     successMsg(response.message);
                     window.location.reload(true);
                 } else {
 
-                    errorMsg(response.error.file);
+                    var message = response && response.error && response.error.file ? response.error.file : 'Upload gagal. Silakan coba lagi.';
+                    errorMsg(message);
                 }
 
             },
             error: function (xhr) { // if error occured
-
+                showUploadError(xhr, 'Upload gagal. Silakan coba lagi.');
             },
             complete: function () {
                 $('#modal-uploadfile').removeClass('modal_loading');
@@ -482,17 +501,18 @@
             },
             success: function (response) {
 
-                if (response.success) {
+                if (response && response.success) {
                     successMsg(response.message);
                     window.location.reload(true);
                 } else {
 
-                    errorMsg(response.error.file);
+                    var message = response && response.error && response.error.file ? response.error.file : 'Upload gagal. Silakan coba lagi.';
+                    errorMsg(message);
                 }
 
             },
             error: function (xhr) { // if error occured
-
+                showUploadError(xhr, 'Upload gagal. Silakan coba lagi.');
             },
             complete: function () {
                 $('#modal-upload_admin_small_logo').removeClass('modal_loading');
@@ -571,17 +591,18 @@
             },
             success: function (response) {
 
-                if (response.success) {
+                if (response && response.success) {
                     successMsg(response.message);
                     window.location.reload(true);
                 } else {
 
-                    errorMsg(response.error.file);
+                    var message = response && response.error && response.error.file ? response.error.file : 'Upload gagal. Silakan coba lagi.';
+                    errorMsg(message);
                 }
 
             },
             error: function (xhr) { // if error occured
-
+                showUploadError(xhr, 'Upload gagal. Silakan coba lagi.');
             },
             complete: function () {
                 $('#modal-upload_admin_logo').removeClass('modal_loading');
@@ -682,17 +703,18 @@
             },
             success: function (response) {
 
-                if (response.success) {
+                if (response && response.success) {
                     successMsg(response.message);
                     window.location.reload(true);
                 } else {
 
-                    errorMsg(response.error.file);
+                    var message = response && response.error && response.error.file ? response.error.file : 'Upload gagal. Silakan coba lagi.';
+                    errorMsg(message);
                 }
 
             },
             error: function (xhr) { // if error occured
-
+                showUploadError(xhr, 'Upload gagal. Silakan coba lagi.');
             },
             complete: function () {
                 $('#modal-upload_app_logo').removeClass('modal_loading');

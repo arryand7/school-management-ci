@@ -21,6 +21,10 @@
     echo $this->session->flashdata('msg');
     $this->session->unset_userdata('msg');
 }?>
+                                    <?php if ($this->session->flashdata('error_msg')) {
+    echo '<div class="alert alert-danger">' . $this->session->flashdata('error_msg') . '</div>';
+    $this->session->unset_userdata('error_msg');
+}?>
                                     <?php echo $this->customlib->getCSRF(); ?>
 
                                     <div class="row">

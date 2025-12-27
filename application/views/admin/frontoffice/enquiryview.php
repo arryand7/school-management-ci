@@ -373,9 +373,13 @@ foreach ($class_list as $key => $value) {
 </script>
 <script>
     $(document).ready(function () {
-      moment.lang('en', {
-          week: { dow: start_week }
-        });
+      if (window.moment) {
+          if (typeof moment.updateLocale === 'function') {
+              moment.updateLocale('en', {week: {dow: start_week}});
+          } else if (typeof moment.locale === 'function') {
+              moment.locale('en');
+          }
+      }
      $('#enquiry_date').daterangepicker(
         {
             locale: {

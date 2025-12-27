@@ -2180,6 +2180,18 @@ class Student extends Admin_Controller
         $section         = $this->input->post('section_id');
         $search_text     = $this->input->post('search_text');
         $search_type     = $this->input->post('srch_type');
+
+        if ($class === '') {
+            $class = null;
+        }
+        if ($section === '') {
+            $section = null;
+        }
+
+        $search_text = trim((string) $search_text);
+        if (empty($search_type)) {
+            $search_type = 'all';
+        }
         $classlist       = $this->class_model->get();
         $classlist       = $classlist;
         $carray          = array();
@@ -2195,8 +2207,18 @@ class Student extends Admin_Controller
 
             $resultlist = $this->student_model->searchdtByClassSection($class, $section);
         } elseif ($search_type == "search_full") {
+            if ($search_text === '') {
+                $search_type = 'all';
+            } else {
+                $resultlist = $this->student_model->searchFullText($search_text, $carray);
+            }
+        }
 
-            $resultlist = $this->student_model->searchFullText($search_text, $carray);
+        if ($search_type == 'all') {
+            $resultlist = $this->student_model->searchdtByClassSection(null, null);
+        }
+        if (!isset($resultlist)) {
+            $resultlist = $this->student_model->searchdtByClassSection(null, null);
         }
 
         $students = array();

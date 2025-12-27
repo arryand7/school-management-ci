@@ -5,7 +5,9 @@
 <div class="control-sidebar-bg"></div>
 </div>
 <script>
-    $.widget.bridge('uibutton', $.ui.button);
+    if ($.widget && $.widget.bridge && $.ui && $.ui.button) {
+        $.widget.bridge('uibutton', $.ui.button);
+    }
 </script>
 <?php
 $language      = $this->customlib->getLanguage();
@@ -49,9 +51,11 @@ $feesinbackdate = $this->customlib->getfeesinbackdate();
 </script>
 <script type="text/javascript">
     $(document).ready(function () {
-        $(".studentsidebar").mCustomScrollbar({
-            theme: "minimal"
-        });
+        if ($.fn.mCustomScrollbar) {
+            $(".studentsidebar").mCustomScrollbar({
+                theme: "minimal"
+            });
+        }
 
         $('.studentsideclose, .overlay').on('click', function () {
             $('.studentsidebar').removeClass('active');
@@ -298,8 +302,14 @@ if (isset($title)) {
                 $("#desc-field").text('');
                 var event_start_from = new Date(date);
                 console.log(event_start_from.toISOString());
-                $('.event_from',newEventModal).data("DateTimePicker").date(event_start_from);
-                $('.event_to',newEventModal).data("DateTimePicker").date(event_start_from);
+                var eventFromPicker = $('.event_from', newEventModal).data("DateTimePicker");
+                if (eventFromPicker) {
+                    eventFromPicker.date(event_start_from);
+                }
+                var eventToPicker = $('.event_to', newEventModal).data("DateTimePicker");
+                if (eventToPicker) {
+                    eventToPicker.date(event_start_from);
+                }
                 $('#newEventModal').modal('show');
 
 <?php
@@ -344,10 +354,16 @@ if (isset($title)) {
 
                 var __viewModal=$('#viewEventModal');
  var event_start_from = new Date(msg.start_date);
- $('.event_from',__viewModal).data("DateTimePicker").date(event_start_from);
+ var viewEventFromPicker = $('.event_from', __viewModal).data("DateTimePicker");
+ if (viewEventFromPicker) {
+     viewEventFromPicker.date(event_start_from);
+ }
 
   var event_end_to = new Date(msg.end_date);
- $('.event_to',__viewModal).data("DateTimePicker").date(event_end_to);
+ var viewEventToPicker = $('.event_to', __viewModal).data("DateTimePicker");
+ if (viewEventToPicker) {
+     viewEventToPicker.date(event_end_to);
+ }
                 //============
 
                 $("#event_color").val(msg.event_color);
@@ -468,9 +484,13 @@ if (isset($title)) {
     });
 
     $(document).ready(function () {
-        moment.lang('en', {
-          week: { dow: start_week }
-        });
+        if (window.moment) {
+            if (typeof moment.updateLocale === 'function') {
+                moment.updateLocale('en', {week: {dow: start_week}});
+            } else if (typeof moment.locale === 'function') {
+                moment.locale('en');
+            }
+        }
 
         $("body").delegate(".date", "focusin", function () {
             $(this).datepicker({
@@ -483,10 +503,11 @@ if (isset($title)) {
         });
 
         $("body").delegate(".datetime", "focusin", function () {
-            $(this).datetimepicker({
-                format: calendar_date_time_format + ' hh:mm a'
-
-            });
+            if ($.fn.datetimepicker) {
+                $(this).datetimepicker({
+                    format: calendar_date_time_format + ' hh:mm a'
+                });
+            }
         });
 
         $('body').on('focus',".date_fee", function(){
@@ -502,9 +523,11 @@ if (isset($title)) {
         });
       });
 
-        $('.datetime_twelve_hour').datetimepicker({
-               format:  calendar_date_time_format + ' hh:mm a'
-        });
+        if ($.fn.datetimepicker) {
+            $('.datetime_twelve_hour').datetimepicker({
+                format: calendar_date_time_format + ' hh:mm a'
+            });
+        }
 
 
             $("#event_date").daterangepicker({
@@ -516,13 +539,15 @@ if (isset($title)) {
 
 ///================
 
-        $('.event_from').datetimepicker({
-               format:  calendar_date_time_format + ' hh:mm A',
-        });
+        if ($.fn.datetimepicker) {
+            $('.event_from').datetimepicker({
+                format: calendar_date_time_format + ' hh:mm A'
+            });
 
-        $('.event_to').datetimepicker({
-               format:  calendar_date_time_format + ' hh:mm A',
-        });
+            $('.event_to').datetimepicker({
+                format: calendar_date_time_format + ' hh:mm A'
+            });
+        }
 
 //==============
 
@@ -532,12 +557,12 @@ if (isset($title)) {
 
         var date_format = '<?php echo $result = strtr($this->customlib->getSchoolDateFormat(), ['d' => 'dd', 'm' => 'mm', 'Y' => 'yyyy']) ?>';
 
-        $('.date').datetimepicker({
-            format: datetime_format,
-            locale:
-                    '<?php echo $language_name ?>',
-
-        });
+        if ($.fn.datetimepicker) {
+            $('.date').datetimepicker({
+                format: datetime_format,
+                locale: '<?php echo $language_name ?>'
+            });
+        }
     }
 
     // showdate('this_year');

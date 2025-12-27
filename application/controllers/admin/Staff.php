@@ -650,6 +650,17 @@ class Staff extends Admin_Controller
 
                 if (isset($_FILES["file"]) && !empty($_FILES['file']['name'])) {
                     $img_name             = $this->media_storage->fileupload("file", "./uploads/staff_images/");
+                    if ($img_name === null) {
+                        $error_message = $this->media_storage->getLastError();
+                        if ($error_message == '') {
+                            $error_message = 'Upload foto profil gagal. Periksa permission uploads/staff_images.';
+                        }
+                        $this->session->set_flashdata('error_msg', $error_message);
+                        $this->load->view('layout/header', $data);
+                        $this->load->view('admin/staff/staffcreate', $data);
+                        $this->load->view('layout/footer', $data);
+                        return;
+                    }
                     $data_insert['image'] = $img_name;
                 }
 
@@ -1104,6 +1115,15 @@ class Staff extends Admin_Controller
 
             if (isset($_FILES["file"]) && !empty($_FILES['file']['name'])) {
                 $img_name       = $this->media_storage->fileupload("file", "./uploads/staff_images/");
+                if ($img_name === null) {
+                    $error_message = $this->media_storage->getLastError();
+                    if ($error_message == '') {
+                        $error_message = 'Upload foto profil gagal. Periksa permission uploads/staff_images.';
+                    }
+                    $this->session->set_flashdata('error_msg', $error_message);
+                    redirect('admin/staff/edit/' . $id);
+                    return;
+                }
                 $data1['image'] = $img_name;
 
                 if ($staff['image'] != '') {

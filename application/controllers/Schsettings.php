@@ -68,6 +68,15 @@ class Schsettings extends Admin_Controller
             if (isset($_FILES["file"]) && $_FILES['file']['name'] != '' && (!empty($_FILES['file']['name']))) {
 
                 $img_name = $this->media_storage->fileupload("file", "./uploads/school_content/logo/");
+                if ($img_name === null) {
+                    $error_message = $this->media_storage->getLastError();
+                    if ($error_message == '') {
+                        $error_message = $this->lang->line('something_went_wrong');
+                    }
+                    $array = array('success' => false, 'error' => array('file' => $error_message));
+                    echo json_encode($array);
+                    return;
+                }
             } else {
                 $img_name = $setting->image;
             }
@@ -101,6 +110,15 @@ class Schsettings extends Admin_Controller
             if (isset($_FILES["file"]) && $_FILES['file']['name'] != '' && (!empty($_FILES['file']['name']))) {
 
                 $img_name = $this->media_storage->fileupload("file", "./uploads/school_content/admin_small_logo/");
+                if ($img_name === null) {
+                    $error_message = $this->media_storage->getLastError();
+                    if ($error_message == '') {
+                        $error_message = $this->lang->line('something_went_wrong');
+                    }
+                    $array = array('success' => false, 'error' => array('file' => $error_message));
+                    echo json_encode($array);
+                    return;
+                }
             } else {
                 $img_name = $setting->admin_small_logo;
             }
@@ -133,6 +151,15 @@ class Schsettings extends Admin_Controller
             if (isset($_FILES["file"]) && $_FILES['file']['name'] != '' && (!empty($_FILES['file']['name']))) {
 
                 $img_name = $this->media_storage->fileupload("file", "./uploads/school_content/admin_logo/");
+                if ($img_name === null) {
+                    $error_message = $this->media_storage->getLastError();
+                    if ($error_message == '') {
+                        $error_message = $this->lang->line('something_went_wrong');
+                    }
+                    $array = array('success' => false, 'error' => array('file' => $error_message));
+                    echo json_encode($array);
+                    return;
+                }
             } else {
                 $img_name = $setting->admin_logo;
             }
@@ -315,6 +342,15 @@ class Schsettings extends Admin_Controller
             if (isset($_FILES["file"]) && $_FILES['file']['name'] != '' && (!empty($_FILES['file']['name']))) {
 
                 $img_name = $this->media_storage->fileupload("file", "./uploads/school_content/logo/app_logo/");
+                if ($img_name === null) {
+                    $error_message = $this->media_storage->getLastError();
+                    if ($error_message == '') {
+                        $error_message = $this->lang->line('something_went_wrong');
+                    }
+                    $array = array('success' => false, 'error' => array('file' => $error_message));
+                    echo json_encode($array);
+                    return;
+                }
             } else {
                 $img_name = $setting->app_logo;
             }

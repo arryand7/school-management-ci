@@ -39,16 +39,17 @@ class Customlib
 
     public function getFolderPath()
     {  
-        $student = $this->CI->session->userdata('student');
-        $admin       = $this->CI->session->userdata('admin');        
-        
-        if ($admin) {
+        $student     = $this->CI->session->userdata('student');
+        $admin       = $this->CI->session->userdata('admin');
+        $folder_path = '';
+
+        if ($admin && isset($admin['db_array']['folder_path'])) {
             $folder_path = $admin['db_array']['folder_path'];
-        } else if ($this->CI->session->userdata('student')) {
-             $folder_path = $student['db_array']['folder_path'];
-        }   
-        
-        if ($folder_path == "") {
+        } else if ($student && isset($student['db_array']['folder_path'])) {
+            $folder_path = $student['db_array']['folder_path'];
+        }
+
+        if ($folder_path == "" || !is_dir($folder_path) || !is_writable($folder_path)) {
             $folder_path = FCPATH;
         }
         return $folder_path;

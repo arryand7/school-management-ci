@@ -267,8 +267,104 @@ $(document).ready(function () {
 </script>
 
  <script>
+function loadStudentList(params) {
+    if ($.fn.DataTable.isDataTable('.student-list')) {
+        $('.student-list').DataTable().destroy();
+    }
+
+    table = $('.student-list').DataTable({
+
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend:    'copy',
+                text:      '<i class="fa fa-files-o"></i>',
+                titleAttr: 'Copy',
+                className: "btn-copy",
+                title: $('.student-list').data("exportTitle"),
+                exportOptions: {
+                    columns: ["thead th:not(.noExport)"]
+                }
+            },
+            {
+                extend:    'excel',
+                text:      '<i class="fa fa-file-excel-o"></i>',
+                titleAttr: 'Excel',
+                className: "btn-excel",
+                title: $('.student-list').data("exportTitle"),
+                exportOptions: {
+                    columns: ["thead th:not(.noExport)"]
+                }
+            },
+            {
+                extend:    'csv',
+                text:      '<i class="fa fa-file-text-o"></i>',
+                titleAttr: 'CSV',
+                className: "btn-csv",
+                title: $('.student-list').data("exportTitle"),
+                exportOptions: {
+                    columns: ["thead th:not(.noExport)"]
+                }
+            },
+            {
+                extend:    'pdf',
+                text:      '<i class="fa fa-file-pdf-o"></i>',
+                titleAttr: 'PDF',
+                className: "btn-pdf",
+                title: $('.student-list').data("exportTitle"),
+                exportOptions: {
+                    columns: ["thead th:not(.noExport)"]
+                },
+
+            },
+            {
+                extend:    'print',
+                text:      '<i class="fa fa-print"></i>',
+                titleAttr: 'Print',
+                className: "btn-print",
+                title: $('.student-list').data("exportTitle"),
+                customize: function ( win ) {
+
+                    $(win.document.body).find('th').addClass('display').css('text-align', 'center');
+                    $(win.document.body).find('table').addClass('display').css('font-size', '14px');
+                    $(win.document.body).find('h1').css('text-align', 'center');
+                },
+                exportOptions: {
+                    columns: ["thead th:not(.noExport)"]
+
+                }
+
+            }
+        ],
+
+        "columnDefs": [ {
+            "targets": -1,
+            "orderable": false
+        } ],
+
+
+        "language": {
+            processing: '<i class="fa fa-spinner fa-spin fa-1x fa-fw"></i><span class="sr-only">Loading...</span> '},
+        "pageLength": 100,
+        "processing": true,
+        "serverSide": true,
+        "ajax":{
+            "url": baseurl+"student/dtstudentlist",
+            "dataSrc": 'data',
+            "type": "POST",
+            'data': params,
+
+        },"drawCallback": function(settings) {
+            if (settings.json && settings.json.student_detail_view) {
+                $('.detail_view_tab').html("").html(settings.json.student_detail_view);
+            }
+        }
+
+    });
+}
+
 $(document).ready(function() {
-     emptyDatatable('student-list','data');
+    loadStudentList({srch_type: 'all'});
 });
 </script>
 
@@ -283,10 +379,20 @@ $("form.class_search_form button[type=submit]").click(function() {
 $(document).on('submit','.class_search_form',function(e){
    e.preventDefault(); // avoid to execute the actual submit of the form.
     var $this = $("button[type=submit][clicked=true]");
+    var search_type = $this.attr('value');
+    if (!search_type) {
+        if ($.trim($('#search_text').val()) !== '') {
+            search_type = "search_full";
+        } else if ($('#class_id').val() !== '') {
+            search_type = "search_filter";
+        } else {
+            search_type = "search_full";
+        }
+    }
     var form = $(this);
     var url = form.attr('action');
     var form_data = form.serializeArray();
-    form_data.push({name: 'search_type', value: $this.attr('value')});
+    form_data.push({name: 'search_type', value: search_type});
     $.ajax({
            url: url,
            type: "POST",
@@ -295,7 +401,7 @@ $(document).on('submit','.class_search_form',function(e){
               beforeSend: function () {
                 $('[id^=error]').html("");
                 $this.button('loading');
-                resetFields($this.attr('value'));
+                resetFields(search_type);
                },
               success: function(response) { // your success handler
 
@@ -305,98 +411,8 @@ $(document).on('submit','.class_search_form',function(e){
                     });
                 }else{        
 
-        if ($.fn.DataTable.isDataTable('.student-list')) { // if exist datatable it will destrory first
-         $('.student-list').DataTable().destroy();
-       }
-        table= $('.student-list').DataTable({
-        
-       dom: 'Bfrtip',
-          buttons: [
-            {
-                extend:    'copy',
-                text:      '<i class="fa fa-files-o"></i>',
-                titleAttr: 'Copy',
-                 className: "btn-copy",
-                title: $('.student-list').data("exportTitle"),
-                  exportOptions: {
-                    columns: ["thead th:not(.noExport)"]
-                  }
-            },
-            {
-                extend:    'excel',
-                text:      '<i class="fa fa-file-excel-o"></i>',
-                titleAttr: 'Excel',
-                     className: "btn-excel",
-                title: $('.student-list').data("exportTitle"),
-                  exportOptions: {
-                    columns: ["thead th:not(.noExport)"]
-                  }
-            },
-            {
-                extend:    'csv',
-                text:      '<i class="fa fa-file-text-o"></i>',
-                titleAttr: 'CSV',
-                className: "btn-csv",
-                title: $('.student-list').data("exportTitle"),
-                  exportOptions: {
-                    columns: ["thead th:not(.noExport)"]
-                  }
-            },
-            {
-                extend:    'pdf',
-                text:      '<i class="fa fa-file-pdf-o"></i>',
-                titleAttr: 'PDF',
-                className: "btn-pdf",
-                title: $('.student-list').data("exportTitle"),
-                  exportOptions: {
-                    columns: ["thead th:not(.noExport)"]
-                  },
-
-            },
-            {
-                extend:    'print',
-                text:      '<i class="fa fa-print"></i>',
-                titleAttr: 'Print',
-                className: "btn-print",
-                title: $('.student-list').data("exportTitle"),
-                customize: function ( win ) {
-
-                    $(win.document.body).find('th').addClass('display').css('text-align', 'center');
-                    $(win.document.body).find('table').addClass('display').css('font-size', '14px');     
-                    $(win.document.body).find('h1').css('text-align', 'center');
-                },
-                exportOptions: {
-                    columns: ["thead th:not(.noExport)"]
-
-                  }
-
-            }
-        ],
-
-        "columnDefs": [ {
-        "targets": -1,
-        "orderable": false
-        } ],
-
-
-           "language": {
-            processing: '<i class="fa fa-spinner fa-spin fa-1x fa-fw"></i><span class="sr-only">Loading...</span> '},
-        "pageLength": 100,
-        "processing": true,
-        "serverSide": true,
-        "ajax":{
-        "url": baseurl+"student/dtstudentlist",
-        "dataSrc": 'data',
-        "type": "POST",
-        'data': response.params,
-
-     },"drawCallback": function(settings) {
-
-    $('.detail_view_tab').html("").html(settings.json.student_detail_view);
-}
-
-    });
-            //=======================
+        loadStudentList(response.params);
+        //=======================
                 }
               },
              error: function() { // your error handler

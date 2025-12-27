@@ -124,9 +124,11 @@
         event.stopPropagation();
     });
 
-    $(".mCustomScrollbar").mCustomScrollbar({
-        scrollInertia: 1000,
-        mouseWheelPixels: 170,
-        autoDraggerLength: false,
-    });
+    if ($.fn.mCustomScrollbar) {
+        $(".mCustomScrollbar").mCustomScrollbar({
+            scrollInertia: 1000,
+            mouseWheelPixels: 170,
+            autoDraggerLength: false
+        });
+    }
 </script>

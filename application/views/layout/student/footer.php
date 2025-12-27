@@ -5,7 +5,9 @@
 <div class="control-sidebar-bg"></div>
 </div>
 <script>
-    $.widget.bridge('uibutton', $.ui.button);
+    if ($.widget && $.widget.bridge && $.ui && $.ui.button) {
+        $.widget.bridge('uibutton', $.ui.button);
+    }
 </script>
 
 <link href="<?php echo base_url(); ?>backend/toast-alert/toastr.css" rel="stylesheet"/>
